@@ -1068,28 +1068,6 @@ SCRTMP := YPOS*5;
 CANDOIT := true;
 while CANDOIT do
 begin
-
-     {if YPOS = FIELDHEIGHT -(BlockHeight) then
-     begin
-          NeutralizeBlock;
-          GameState := gsCreatingBlock;
-          CANTOUCH := False;
-          RemoveBlocks;
-          PlayArea.Draw;
-          dodraw := true;
-          Exit;
-     end;}
-     //if CANDOIT then
-     //begin
-     //for x := XPOS  to XPOS +(BlockWidth-1) do
-     //begin
-     //     if PlayMatrix[YPOS+CenterY+1, x] = STONED then
-     //     begin
-     //          CANDOIT := False;
-     //          Break;
-     //     end;
-     //end;
-     //end;
      if CANDOIT then CANDOIT := CheckPUTY(Block, XPOS,YPOS+1);
      if CANDOIT then
      begin
@@ -1108,7 +1086,6 @@ begin
      IF YPOS = STARTYNUM then
      begin
           EndGame;
-          //exit;
      end;
 
      if sfx then PlayArea.Draw; // OPTIONAL: does a nice little effect.. I'm keeping it
@@ -1118,7 +1095,7 @@ end;
 dodraw := true;
 if SFX then
 begin
-     GaussianBlur(PlayArea.Bmp,1); // EFECT
+     GaussianBlur(PlayArea.Bmp,1); // EFFECT
      //Emboss(PlayArea.Bmp);
 end;
 PlayArea.Draw;
