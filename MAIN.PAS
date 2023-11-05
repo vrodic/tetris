@@ -155,18 +155,7 @@ const
      //  explains itself
      NUMBLOCKS = 7;
 
-     //  block types and their rotated counterparts
-
-     //  I letter block
-     IBLOCKNR = 1;
-     BOXBLOCKNR = 0;
-     L1BLOCKNR = 3;
-     L2BLOCKNR = 3;
-     CANONBLOCKNR = 3;
-     STH1BLOCKNR = 1;
-     STH2BLOCKNR = 1;
-
-
+//  block types and their rotated counterparts
 var
      IBLOCKR0 : TBlock =
        ((1,1,1,1),
@@ -662,13 +651,13 @@ end;
 function TfrmTetris.GetNumRotations(BlockType : TBlockType): integer;
 begin
      case BlockType of
-          ftIBLOCK: Result := IBLOCKNR;
-          ftBOXBLOCK: Result := BOXBLOCKNR;
-          ftCANONBLOCK: Result := CANONBLOCKNR;
-          ftL2BLOCK: Result := L2BLOCKNR;
-          ftL1BLOCK: Result := L1BLOCKNR;
-          ftSTH1BLOCK : Result := STH1BLOCKNR;
-          ftSTH2BLOCK : Result := STH2BLOCKNR;
+          ftIBLOCK: Result := 1;
+          ftBOXBLOCK: Result := 0;
+          ftCANONBLOCK: Result := 3;
+          ftL2BLOCK: Result := 3;
+          ftL1BLOCK: Result := 3;
+          ftSTH1BLOCK : Result := 1;
+          ftSTH2BLOCK : Result := 1;
      end;
 end;
 
@@ -722,6 +711,7 @@ procedure TfrmTetris.FormKeyDown(Sender: TObject; var Key: Word;
   Shift: TShiftState);
 begin
 //Caption := IntTostr(key); // DEBUG
+if mnuPause.Checked then Exit;
 if not CANTOUCH then Exit; // VR2023 not sure if needed
 with TetrisGame do
 begin
@@ -1035,13 +1025,7 @@ begin
     canonbmp := TFastBMP.CreateFromFile(path+'canon.bmp');
     sth1bmp := TFastBMP.CreateFromFile(path+'sth1.bmp');
     sth2bmp := TFastBMP.CreateFromFile(path+'sth2.bmp');
-    ibmp.Tag := PFastBMP;
-    boxbmp.Tag := PFastBMP;
-    l1bmp.Tag := PFastBMP;
-    l2bmp.Tag := PFastBMP;
-    canonbmp.Tag := PFastBMP;
-    sth1bmp.Tag := PFastBMP;
-    sth2bmp.Tag := PFastBMP;
+
     Backbmp:= TFastBMP.CreateFromFile(path+'wall' + IntToStr(TetrisGame.CurrLevel)+'.bmp');
     backbmp.TileDraw(BackIMG.Canvas.Handle,0,0, ClientRect.Right - ClientRect.Left,ClientRect.Bottom - ClientRect.Top);
     BackIMG.Refresh;
