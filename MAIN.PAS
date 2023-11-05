@@ -117,15 +117,13 @@ type
     function  ReturnBlockColor(BlockType : TBlockType): TFColor;
     procedure  ChooseBlockBitmap(BlockType : TBlockType; var Bitmap : TFastBmp);
     function CheckPutY(BLK : TBlock; ix, iy : integer) : boolean;
-   // function CheckPutX(BLK : TBlock; ix, iy : integer) : boolean;
     function GetNumRotations(BlockType : TBlockType): integer;
     procedure NeutralizeBlock;
     procedure RotateBlock;
     procedure DropDown;
     procedure DrawBlock(dst: TFastRGB; ix, iy : integer; Bitmap : TFastBMP);
     procedure DrawNextBlock;
-    //function CheckYR(BLK : TBlock) : boolean;
-    //function CheckYL(BLK : TBlock) : boolean;
+
     procedure InitBlockBitmaps;
     procedure PlayMeSound(WavFileName: String; MODE : Word);
     procedure EndGame;
@@ -140,10 +138,6 @@ const APPNAME = 'Tetris by Vedran Rodic';
       INIFILENAME = 'tetris.ini';
 
 const
-//     SQUAREWIDTH = 18;
-//     SQUAREHEIGHT = 18;
-//     FIELDWIDTH = 15;
-//     FIELDHEIGHT = 25;
 
      // BLOCK DEFINITIONS
      //   field fill types
@@ -775,76 +769,6 @@ begin
 end;
 end;
 
-{function TfrmTetris.CheckYR(BLK : TBlock) : boolean;
-var x,y : integer;
-begin
-     Result := True;
-with TetrisGame do
-begin
-     for x := 3 downto 0 do
-     begin
-      for y := 0 to 3 do
-      begin
-           if BLK[y,x] = ftMoving then
-           begin
-                Result := False;
-                exit;
-           end;
-      end;
-     end;
-end;
-end;
-
-function TfrmTetris.CheckYL(BLK : TBlock) : boolean;
-var x,y : integer;
-begin
-     Result := True;
-with TetrisGame do
-begin
-     for x := 0 downto 3 do
-     begin
-      for y := 0 to 3 do
-      begin
-           if BLK[y,x] = ftMoving then
-           begin
-                Result := False;
-                exit;
-           end;
-      end;
-     end;
-end;
-end;}
-
-{$IFDEF BLAH}
-function TfrmTetris.CheckPutX(BLK : TBlock; ix, iy : integer) : boolean;
-var x,y : integer;
-begin
-     Result := True;
-with TetrisGame do
-begin
-     for x := 0 to 3 do
-     begin
-      for y := 0 to 3 do
-      begin
-           if BLK[y,x] = ftMoving then
-           begin
-                 if (PlayMatrix [iy+y,ix+x] > ftMoving) {and NOT (BLK[y+1,x] = STONED)}  then
-                 begin
-                      Result := False;
-                      exit;
-                 end
-                 else
-                 begin
-                      Result := True;
-                 end;
-           end;
-      end;
-     end;
-
-end;
-end;
-{$ENDIF}
-
 function TfrmTetris.GetNumRotations(BlockType : TBlockType): integer;
 begin
      case BlockType of
@@ -901,25 +825,13 @@ var //x,y : integer;
     //TMP : TBlock;
     //TMP2 : integer;
 begin
-//Caption := IntTostr(key); // DEBUG
+Caption := IntTostr(key); // DEBUG
 if not CANTOUCH then Exit;
 with TetrisGame do
 begin
      case key of
-      39:
+      39: // RIGHT
       begin
-      //CANDOIT := TRUE;
-      {while CheckYR(Block) do
-      begin
-       inc(mi);
-      end;
-      If (XPOS  >= (FIELDWIDTH -(BlockWidth+mi)))  then
-      begin
-           CANDOIT := False;
-           exit;
-      end;}
-      //for y := YPOS  to YPOS + BlockHeight do
-      //IF PlayMatrix[y, XPOS + ((BlockWidth+1)-CenterX)] > ftMoving then CANDOIT := False;
       CanDoit := CheckPutY(Block, XPOS+1,YPOS);
       IF CANDOIT then
       begin
@@ -929,14 +841,8 @@ begin
            PlayArea.Draw;
       end;
       end;
-      37:
+      37: // LEFT
       begin
-      //CANDOIT := TRUE;
-      {If XPOS + CenterY  = 0 then
-      begin
-           CANDOIT := False;
-           exit;
-      end;}
       CanDoit := CheckPutY(Block, XPOS-1,YPOS);
       IF CANDOIT then
       begin
@@ -947,38 +853,23 @@ begin
       end;
       end;
       //113: NewGame;
-      38,12:
+      38,12: // UP
       begin
            RemoveBlock(XPOS,YPOS);
            RotateBlock;
            PutBlock(XPOS,YPOS);
-           PlayArea.Draw;
-          { RemoveBlock(XPOS,YPOS);
-           for y := 0 to 3 do
-            for x := 0 to 3 do
-            begin
-                TMP[y,x] := Block[x,y];
-            end;
-           if CheckPutY(TMP,XPOS,YPOS) and CheckPutX(TMP,XPOS,YPOS) then
-           begin
-                Block := TMP;
-                TMP2 := CenterY;
-                CenterY := CenterX;
-                CenterX := TMP2;
-                PutBlock(XPOS,YPOS);
-           end; }
       end;
-      116:
+      116:// F5
       begin
            GameClock.Interval := GameClock.interval -10;
            lblLevel.Caption := IntToStr(GameClock.Interval);
       end;
-      117:
+      117:// F6
       begin
            GameClock.Interval := GameClock.interval +10;
            lblLevel.Caption := IntToStr(GameClock.Interval);           
       end;
-      40:
+      40: // DOWN
       begin
            DropDown;
       end;
