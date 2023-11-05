@@ -5,7 +5,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
-  FastIMG, FastBMP, FastDraw, FastRGB, ExtCtrls,FastFX, StdCtrls, Menus,abox,scores,chskin,inifiles,MMSystem,vdb;
+  FastIMG, FastBMP, FastDraw, FastRGB, ExtCtrls,FastFX, StdCtrls, Menus,abox,scores,chskin,inifiles, vdb;
 
 
 
@@ -18,14 +18,11 @@ type TPlayMatrix = array of array of byte;
        Xpos : integer;
        Ypos : integer;
        GameState : TGameState;
-       CenterX: integer;
-       CenterY: integer;
        Block : TBlock;
        BlockWidth : integer;
        BlockHeight : integer;
        BlockType : TBlockType;
        PlayMatrix : TPlayMatrix;
-       //BlockColor : TFColor;
        BlockBitmap : TFastBMP;
        rotateindex : Integer;
        NumRotations : integer;
@@ -102,6 +99,7 @@ type
     procedure N71Click(Sender: TObject);
     procedure N81Click(Sender: TObject);
     procedure N91Click(Sender: TObject);
+    procedure FormResize(Sender: TObject);
   private
     { Private declarations }
   public
@@ -114,7 +112,6 @@ type
     procedure PutBlock(ix,iy: integer);
     procedure RemoveBlock(ix,iy: integer);
     procedure DrawMatrix;
-    function  ReturnBlockColor(BlockType : TBlockType): TFColor;
     procedure  ChooseBlockBitmap(BlockType : TBlockType; var Bitmap : TFastBmp);
     function CheckPutY(BLK : TBlock; ix, iy : integer) : boolean;
     function GetNumRotations(BlockType : TBlockType): integer;
@@ -125,7 +122,6 @@ type
     procedure DrawNextBlock;
 
     procedure InitBlockBitmaps;
-    procedure PlayMeSound(WavFileName: String; MODE : Word);
     procedure EndGame;
     procedure OnAppDeactivate(Sender : TObject);
   end;
@@ -299,18 +295,15 @@ var
 
 var TetrisGame : TTetrisGame;
     CANTOUCH : Boolean;
-    DoDraw : boolean;
     Score : LONGWORD; // a quickie!
-    SFX : boolean = false;
     SQUAREWIDTH :integer =27;
     SQUAREHEIGHT  : integer = 22;
     FIELDWIDTH : integer= 10;
     FIELDHEIGHT : integer= 20;
     NextBlock : TBlockType;
     BLockPreview : boolean = false;
-    Delayer : byte; // used to delay after rock has soft landed
+    Delayer : byte; // used to delay after block has soft landed
                     // enables player to move the rock some time after
-    NBBackColor : TFColor;
 procedure DrawToFBMP(Bmp, dst:TFastRGB;ix, iy : integer);
 // bitmap data constants and vars
 const
@@ -359,25 +352,24 @@ LinesRemoved := 0;
 CurrLevel := 1;
 GameState := gsCreatingBlock;
 PlayArea.CreateNew(SQUAREWIDTH * FIELDWIDTH, SQUAREHEIGHT * FIELDHEIGHT, PFASTBMP);
-NB.CreateNew(SQUAREWIDTH * 4, SQUAREHEIGHT * 4, PFASTBMP);
+NB.CreateNew(SQUAREWIDTH * 4, SQUAREHEIGHT * 5, PFASTBMP);
 PlayArea.Draw;
 Delayer := 0;
 
-//panelPlayArea.Width := (SQUAREWIDTH * FIELDWIDTH) +2;
-//Bevel1.Height := (SQUAREHEIGHT * FIELDHEIGHT) +2;
 CanTouch := False;
 GameClock.Enabled := True; // start!;
-dodraw := True;
+
 Score := 0;
-// options: should go to options dialog later
-//SFX := True;
+
 lblLevel.Caption := IntToStr(GameClock.Interval);
 NextBlock := Random(NUMBLOCKS)+2;
 pnNB.Visible := BlockPreview;
 end;
+
 // centering code
 panelPlayArea.Top := ((ClientRect.Bottom-ClientRect.Top) div 2) - (PlayArea.Height div 2);
 panelPlayArea.left := ((ClientRect.Right-ClientRect.Left) div 2) - (PlayArea.Width div 2);
+
 if STARTINGROWS <> 0 then
 begin
 RNDOK := False;
@@ -400,6 +392,7 @@ begin
 end;
 DrawMatrix;
 end;
+
 end;
 
 procedure TfrmTetris.GameClockTimer(Sender: TObject);
@@ -413,9 +406,6 @@ NewGame;
 end;
 
 procedure TfrmTetris.AdvanceGame;
-var CANDOIT : boolean;
-    //x,y: integer;
-    //LINEFULL : boolean;
 begin
 with TetrisGame do
 begin
@@ -424,30 +414,8 @@ begin
      case GameState of
      gsPlaying:
      begin
-     CANDOIT := true;
-     {if YPOS = FIELDHEIGHT -(BlockHeight) then
-     begin
-          NeutralizeBlock;
-          GameState := gsCreatingBlock;
-          CANTOUCH := False;
-          RemoveBlocks;
-          PlayArea.Draw;
-          Exit;
-     end;}
-     //if CANDOIT then
-     //begin
-     //for x := XPOS  to XPOS +(BlockWidth-1) do
-     //begin
-     //     if PlayMatrix[YPOS+CenterY+1, x] = STONED then
-     //     begin
-     //          CANDOIT := False;
-     //          Break;
-     //     end;
-     //end;
-     //end;
-     if CANDOIT then CANDOIT := CheckPUTY(Block, XPOS,YPOS+1);
 
-     if CANDOIT then
+     if CheckPUTY(Block, XPOS,YPOS+1) then
      begin
            RemoveBlock(XPOS,YPOS);
            INC(YPOS);
@@ -463,9 +431,9 @@ begin
           CANTOUCH := False;
           RemoveBlocks;
           DrawMatrix;
-          if SFX then
+          if mnuSFX.checked then
           begin
-               GaussianBlur(PlayArea.Bmp,1); // EFECT
+               GaussianBlur(PlayArea.Bmp,1);
           end;
           Delayer := 0;
      end
@@ -489,64 +457,50 @@ begin
           case BlockType of
                ftIBlock:
                begin
-                    CenterX := 2;
-                    CenterY := 0;
                     BlockWidth := 4;
                     BlockHeight := 1;
                     Block := IBLOCKR0;
                end;
                ftBoxBlock:
                begin
-                    CenterX := 0;
-                    CenterY := 0;
                     BlockWidth := 2;
                     BlockHeight := 2;
                     Block := BOXBLOCKR0;
                end;
                ftL1Block:
                begin
-                    CenterX := 0;
-                    CenterY := 0;
                     BlockWidth := 3;
                     BlockHeight := 2;
                     Block := L1BLOCKR0;
                end;
                ftL2Block:
                begin
-                    CenterX := 0;
-                    CenterY := 0;
                     BlockWidth := 3;
                     BlockHeight := 2;
                     Block := L2BLOCKR0;
                end;
                ftCanonBlock:
                begin
-                    CenterX := 1;
-                    CenterY := 0;
                     BlockWidth := 3;
                     BlockHeight := 2;
                     Block := CANONBLOCKR0;
                end;
                ftSTH1Block:
                begin
-                    CenterX := 0;
-                    CenterY := 0;
                     BlockWidth := 3;
                     BlockHeight := 2;
                     Block := STH1BLOCKR0;
                end;
                ftSTH2Block:
                begin
-                    CenterX := 0;
-                    CenterY := 0;
                     BlockWidth := 3;
                     BlockHeight := 2;
                     Block := STH2BLOCKR0;
                end;
 
           end;
-          //BlockColor := ReturnBlockColor(BlockType);
-          ChooseBlockBitmap(BlockType, BlockBitmap); // not here yet
+
+          ChooseBlockBitmap(BlockType, BlockBitmap);
           GameState := gsPlaying;
           if not CheckPutY(Block,XPOS,YPOS) then
           begin
@@ -597,8 +551,7 @@ begin
            if Block[y,x] = ftMoving then
            begin
                PlayMatrix [iy+y,ix+x] := ftMoving;
-               //if DoDraw then FillRect(PlayArea.Bmp,(ix+x)*SQUAREWIDTH,(iy+y)*SQUAREHEIGHT,SQUAREWIDTH,SQUAREHEIGHT, BlockColor);
-               DrawBlock(PlayArea.Bmp,(ix+x)*SQUAREWIDTH,(iy+y)*SQUAREHEIGHT,BlockBitmap); // IMPLEMENT
+               DrawBlock(PlayArea.Bmp,ix+x,iy+y,BlockBitmap);
            end;
       end;
 
@@ -620,21 +573,6 @@ begin
            end;
       end;
 end;
-end;
-
-
-
-function TfrmTetris.ReturnBlockColor(BlockType : TBlockType) : TFColor;
-begin
-     case BlockType of
-          ftIBLOCK: Result := FRGB(255,0,0);
-          ftBOXBLOCK: Result := FRGB(0,191,191);
-          ftCANONBLOCK: Result := FRGB(128,128,128);
-          ftL2BLOCK: Result := FRGB(255,255,0);
-          ftL1BLOCK: Result := FRGB(191,0,191);
-          ftSTH1BLOCK : Result := FRGB(0,255,0);
-          ftSTH2BLOCK : Result := FRGB(0,0,255);
-     end;
 end;
 
 procedure TfrmTetris.ChooseBlockBitmap(BlockType : TBlockType;Var Bitmap :TFastBMP);
@@ -683,13 +621,8 @@ begin
      TetrisGame.PlayMatrix[iy,i] := ftBLANK;
 end;
 HMatrixShift(iy);
-//FillRect(PlayArea.Bmp,0,iy*SQUAREHEIGHT, (FIELDWIDTH*SQUAREWIDTH)-1,SQUAREHEIGHT,FRGB(0,0,0));
-//GameClock.Enabled := False;
-//PlayArea.Draw;              // debug shit
-//ShowMessage('Fuck');
-//GameClock.Enabled := True;
-//HSplitShift(PlayArea.Bmp,SQUAREHEIGHT,iy*SQUAREHEIGHT);
-if SFX then
+
+if mnuSFX.checked then
 begin
      DrawMatrix;
      PlayArea.Draw;
@@ -708,13 +641,13 @@ begin
                if TetrisGame.PlayMatrix[y,x] = ftBLANK then
                   FillRect(PlayArea.Bmp, x*SQUAREWIDTH, y* SQUAREHEIGHT,SQUAREWIDTH, SQUAREHEIGHT, FRGB(0,0,0))
                else if TetrisGame.PlayMatrix[y,x] = ftMOVING then
-                  //FillRect(PlayArea.Bmp, x*SQUAREWIDTH, y* SQUAREHEIGHT,SQUAREWIDTH, SQUAREHEIGHT, TetrisGame.BlockColor)
-                  DrawBlock(PlayArea.Bmp,(x)*SQUAREWIDTH,(y)*SQUAREHEIGHT,TetrisGame.BlockBitmap)
+               begin
+                 DrawBlock(PlayArea.Bmp,x,y,TetrisGame.BlockBitmap);
+               end
                else
                begin
                     ChooseBlockBitmap(TetrisGame.PlayMatrix[y,x],tmpbmp);
-                    DrawBlock(PlayArea.BMP,(x)*SQUAREWIDTH,(y)*SQUAREHEIGHT,tmpbmp);
-                    //FillRect(PlayArea.Bmp, x*SQUAREWIDTH, y* SQUAREHEIGHT,SQUAREWIDTH, SQUAREHEIGHT, ReturnBlockColor(TetrisGame.PlayMatrix[y,x]));
+                    DrawBlock(PlayArea.BMP,x,y,tmpbmp);
                end;
 
           end;
@@ -753,7 +686,7 @@ begin
                       Result := False;
                       exit;
                  end;
-                 if (PlayMatrix [iy+y,ix+x] > ftMoving) {and NOT (BLK[y+1,x] = STONED)}  then
+                 if (PlayMatrix [iy+y,ix+x] > ftMoving) then
                  begin
                       Result := False;
                       exit;
@@ -787,7 +720,6 @@ end;
 procedure TfrmTetris.FormCreate(Sender: TObject);
 var IniFile : TIniFile;
 begin
-NBBackColor := FRGB(GetRValue(ColorToRGB(pnNB.Color)),GetGValue(ColorToRGB(pnNB.Color)),GetBValue(ColorToRGB(pnNB.Color)));
 Application.OnDeactivate :=OnAppDeactivate;
 BackIMG.Width := ClientRect.Right - ClientRect.Left;
 BackIMG.Height := ClientRect.Bottom - ClientRect.Top;
@@ -809,31 +741,25 @@ case STARTINGROWS of 0: N01.Checked := True;
                      9: N91.Checked := True;
 end;
 mnuNB.Checked := BlockPreview;
-//currskin := 'vedran';
+
 TetrisGame.CurrLevel := 1;
 InitBlockBitmaps;
 NewGame;
-// centering code moved to Newgame
-mnuSFX.Checked := SFX;
+
 Caption := APPNAME;
 end;
 
 procedure TfrmTetris.FormKeyDown(Sender: TObject; var Key: Word;
   Shift: TShiftState);
-var //x,y : integer;
-    CANDOIT : boolean;
-    //TMP : TBlock;
-    //TMP2 : integer;
 begin
-Caption := IntTostr(key); // DEBUG
-if not CANTOUCH then Exit;
+//Caption := IntTostr(key); // DEBUG
+if not CANTOUCH then Exit; // VR2023 not sure if needed
 with TetrisGame do
 begin
      case key of
       39: // RIGHT
       begin
-      CanDoit := CheckPutY(Block, XPOS+1,YPOS);
-      IF CANDOIT then
+      IF CheckPutY(Block, XPOS+1,YPOS) then
       begin
            RemoveBlock(XPOS,YPOS);
            INC(XPOS);
@@ -843,8 +769,7 @@ begin
       end;
       37: // LEFT
       begin
-      CanDoit := CheckPutY(Block, XPOS-1,YPOS);
-      IF CANDOIT then
+      IF CheckPutY(Block, XPOS-1,YPOS) then
       begin
            RemoveBlock(XPOS,YPOS);
            DEC(XPOS);
@@ -858,6 +783,7 @@ begin
            RemoveBlock(XPOS,YPOS);
            RotateBlock;
            PutBlock(XPOS,YPOS);
+           PlayArea.Draw;
       end;
       116:// F5
       begin
@@ -868,6 +794,16 @@ begin
       begin
            GameClock.Interval := GameClock.interval +10;
            lblLevel.Caption := IntToStr(GameClock.Interval);           
+      end;
+      32: // SPACE
+      begin
+      IF CheckPutY(Block, XPOS,YPOS+1) then
+      begin
+           RemoveBlock(XPOS,YPOS);
+           INC(YPOS);
+           PutBlock(XPOS,YPOS);
+           PlayArea.Draw;
+      end;
       end;
       40: // DOWN
       begin
@@ -903,9 +839,6 @@ var TMP2 : integer;
 begin
 with TetrisGame do
 begin
-   //if XPOS < BLOCKWIDTH then exit;
-   //if YPOS + BLOCKWIDTH >= FIELDHEIGHT then exit;
-   //if XPOS + BLOCKHEIGHT >= FIELDWIDTH then EXIT;
    ri := rotateindex;
    if NumRotations > RotateIndex then
        inc(rotateindex)
@@ -982,7 +915,6 @@ begin
             exit;
            end;
         end
-        //else if
         else
         begin
              rotateindex := ri;
@@ -990,9 +922,6 @@ begin
         end;
    end;
 
-   TMP2 := CenterX;
-   CenterX := CenterY;
-   CenterY := TMP2;
 
    TMP2 := BlockHeight;
    BlockHeight := BlockWidth;
@@ -1061,7 +990,7 @@ procedure TfrmTetris.DropDown;
 var CANDOIT : boolean;
     SCRTMP : integer;
 begin
-//dodraw := false;
+
 with TetrisGame do
 begin
 SCRTMP := YPOS*5;
@@ -1088,12 +1017,12 @@ begin
           EndGame;
      end;
 
-     if sfx then PlayArea.Draw; // OPTIONAL: does a nice little effect.. I'm keeping it
+     if mnuSfx.checked then PlayArea.Draw; // OPTIONAL: does a nice little effect.. I'm keeping it
 end;
 Inc(score,SCRTMP+YPOS);
 end;
-dodraw := true;
-if SFX then
+
+if mnuSFX.checked then
 begin
      GaussianBlur(PlayArea.Bmp,1); // EFFECT
      //Emboss(PlayArea.Bmp);
@@ -1115,8 +1044,7 @@ end;
 
 procedure TfrmTetris.mnuSFXClick(Sender: TObject);
 begin
-SFX := not SFX;
-mnuSFX.Checked := SFX;
+mnuSFX.Checked := not mnuSFX.Checked;
 end;
 
 procedure TfrmTetris.mnuPauseClick(Sender: TObject);
@@ -1131,14 +1059,13 @@ end;
 procedure TfrmTetris.DrawBlock(dst: TFastRGB; ix, iy : integer; Bitmap : TFastBMP);
 
 begin
- // color parameter should actually be bitmap
- DrawTOFbmp(Bitmap,dst,ix,iy);
+ DrawTOFbmp(Bitmap,dst,ix*SQUAREWIDTH,iy*SQUAREHEIGHT);
 end;
+
 procedure TfrmTetris.mnuAboutClick(Sender: TObject);
 begin
 if GameClock.Enabled then mnuPauseClick(self);
 ABox.ShowAboutBox;
-//mnuPauseClick(self);
 end;
 
 procedure DrawToFBMP(Bmp, dst:TFastRGB;ix, iy : integer);
@@ -1167,7 +1094,7 @@ var x,y : integer;
     Blocky : TBlock;
     tmpbmp : TFastBMP;
 begin
-FillRect(NB.Bmp,0,0,SQUAREWIDTH *4, SQUAREHEIGHT *4, NBBackColor);
+FillRect(NB.Bmp,0,0,SQUAREWIDTH *4, SQUAREHEIGHT *4, FRGB(0,0,0));
           case NextBlock of
                ftIBlock:
                begin
@@ -1203,9 +1130,8 @@ FillRect(NB.Bmp,0,0,SQUAREWIDTH *4, SQUAREHEIGHT *4, NBBackColor);
       begin
            if Blocky[y,x] = ftMoving then
            begin
-               //FillRect(NB.Bmp,(x)*SQUAREWIDTH,(y)*SQUAREHEIGHT,SQUAREWIDTH,SQUAREHEIGHT, ReturnBlockColor(NextBlock));
                ChooseBLockBitmap(nextblock,tmpbmp);
-               DrawBlock(NB.Bmp,x*SQUAREWIDTH,y*SQUAREHEIGHT,tmpbmp); // IMPLEMENT
+               DrawBlock(NB.Bmp,x,y,tmpbmp);
            end;
       end;
       NB.Draw;
@@ -1436,15 +1362,6 @@ inifile.WriteInteger('Options','StartingRows',STARTINGROWS);
 inifile.Free;
 end;
 
-procedure TfrmTetris.PlayMeSound(WavFileName: String; MODE : Word);
-var  s: Array[0..79] of char;
-begin
-sndPlaySound(nil,0);
-StrPCopy(s, WavFileName);
-sndPlaySound(s, MODE);
-end;
-
-
 procedure Delay(time : longword);
 var tmp : longword;
 begin
@@ -1459,7 +1376,7 @@ procedure TfrmTetris.EndGame;
 var i : integer;
 begin
           GameClock.Enabled := False;
-          if SFX then
+          if mnuSFX.checked then
              for i:= 0 to 60 do
              begin
                //delay(50);
@@ -1547,6 +1464,12 @@ begin
 STARTINGROWS := 9;
 TMenuItem(Sender).Checked := True;
 
+end;
+
+procedure TfrmTetris.FormResize(Sender: TObject);
+begin
+panelPlayArea.Top := ((ClientRect.Bottom-ClientRect.Top) div 2) - (PlayArea.Height div 2);
+panelPlayArea.left := ((ClientRect.Right-ClientRect.Left) div 2) - (PlayArea.Width div 2);
 end;
 
 end.
