@@ -5,7 +5,8 @@ interface
 
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
-  FastIMG, FastBMP, FastDraw, FastRGB, ExtCtrls,FastFX, StdCtrls, Menus,abox,scores,chskin,inifiles, vdb;
+  FastIMG, FastBMP, FastDraw, FastRGB, ExtCtrls,FastFX, StdCtrls, Menus,abox,
+  scores,chskin,inifiles;
 
 
 
@@ -802,6 +803,7 @@ end;
 function TfrmTetris.GetNextRotation(BlockType :TBlockType; Rotateindex: integer): TBlock;
 begin
 case BlockType of
+          ftBOXBLOCK: Result := BOXBLOCKR0;
           ftIBLOCK:
           begin
                case Rotateindex of
@@ -858,8 +860,7 @@ case BlockType of
 end;
 
 procedure TfrmTetris.RotateBlock;
-var TMP2 : integer;
-    TMP : TBlock;
+var TMP : TBlock;
     ri : integer;
 begin
 with TetrisGame do
@@ -1025,10 +1026,6 @@ end;
 
 procedure TfrmTetris.InitBlockBitmaps;
 var path : string;
-    f : textfile;
-    VDB : TVDB;
-    i : integer;
-    trimint : shortint;
 begin
     path := extractFilePath(Application.EXEName) + SKINDIR + '\' + currskin + '\';
     ibmp := TFastBMP.CreateFromFile(path+'i.bmp');
@@ -1048,180 +1045,6 @@ begin
     Backbmp:= TFastBMP.CreateFromFile(path+'wall' + IntToStr(TetrisGame.CurrLevel)+'.bmp');
     backbmp.TileDraw(BackIMG.Canvas.Handle,0,0, ClientRect.Right - ClientRect.Left,ClientRect.Bottom - ClientRect.Top);
     BackIMG.Refresh;
-    VDB := TVDB.Create;
-    if not VDB.OpenFile(path+'block.def') then
-    begin
-         VDB.Free;
-         Exit;
-    end;
-    trimint := -2;
-    for i := 0-trimint to 3-trimint do
-    begin
-         IBLOCKR0[i+trimint,0] := StrToInt(VDB.GetData(i,1));
-         IBLOCKR0[i+trimint,1] := StrToInt(VDB.GetData(i,2));
-         IBLOCKR0[i+trimint,2] := StrToInt(VDB.GetData(i,3));
-         IBLOCKR0[i+trimint,3] := StrToInt(VDB.GetData(i,4));
-    end;
-    dec(trimint,5);
-    for i := 0-trimint to 3-trimint do
-    begin
-         IBLOCKR1[i+trimint,0] := StrToInt(VDB.GetData(i,1));
-         IBLOCKR1[i+trimint,1] := StrToInt(VDB.GetData(i,2));
-         IBLOCKR1[i+trimint,2] := StrToInt(VDB.GetData(i,3));
-         IBLOCKR1[i+trimint,3] := StrToInt(VDB.GetData(i,4));
-    end;
-    dec(trimint,5);
-    for i := 0-trimint to 3-trimint do
-    begin
-         BOXBLOCKR0[i+trimint,0] := StrToInt(VDB.GetData(i,1));
-         BOXBLOCKR0[i+trimint,1] := StrToInt(VDB.GetData(i,2));
-         BOXBLOCKR0[i+trimint,2] := StrToInt(VDB.GetData(i,3));
-         BOXBLOCKR0[i+trimint,3] := StrToInt(VDB.GetData(i,4));
-    end;
-    dec(trimint,5);
-    for i := 0-trimint to 3-trimint do
-    begin
-         L1BLOCKR0[i+trimint,0] := StrToInt(VDB.GetData(i,1));
-         L1BLOCKR0[i+trimint,1] := StrToInt(VDB.GetData(i,2));
-         L1BLOCKR0[i+trimint,2] := StrToInt(VDB.GetData(i,3));
-         L1BLOCKR0[i+trimint,3] := StrToInt(VDB.GetData(i,4));
-    end;
-    dec(trimint,5);
-    for i := 0-trimint to 3-trimint do
-    begin
-         L1BLOCKR1[i+trimint,0] := StrToInt(VDB.GetData(i,1));
-         L1BLOCKR1[i+trimint,1] := StrToInt(VDB.GetData(i,2));
-         L1BLOCKR1[i+trimint,2] := StrToInt(VDB.GetData(i,3));
-         L1BLOCKR1[i+trimint,3] := StrToInt(VDB.GetData(i,4));
-    end;
-    dec(trimint,5);
-    for i := 0-trimint to 3-trimint do
-    begin
-         L1BLOCKR2[i+trimint,0] := StrToInt(VDB.GetData(i,1));
-         L1BLOCKR2[i+trimint,1] := StrToInt(VDB.GetData(i,2));
-         L1BLOCKR2[i+trimint,2] := StrToInt(VDB.GetData(i,3));
-         L1BLOCKR2[i+trimint,3] := StrToInt(VDB.GetData(i,4));
-    end;
-    dec(trimint,5);
-    for i := 0-trimint to 3-trimint do
-    begin
-         L1BLOCKR3[i+trimint,0] := StrToInt(VDB.GetData(i,1));
-         L1BLOCKR3[i+trimint,1] := StrToInt(VDB.GetData(i,2));
-         L1BLOCKR3[i+trimint,2] := StrToInt(VDB.GetData(i,3));
-         L1BLOCKR3[i+trimint,3] := StrToInt(VDB.GetData(i,4));
-    end;
-    dec(trimint,5);
-
-    for i := 0-trimint to 3-trimint do
-    begin
-         L2BLOCKR0[i+trimint,0] := StrToInt(VDB.GetData(i,1));
-         L2BLOCKR0[i+trimint,1] := StrToInt(VDB.GetData(i,2));
-         L2BLOCKR0[i+trimint,2] := StrToInt(VDB.GetData(i,3));
-         L2BLOCKR0[i+trimint,3] := StrToInt(VDB.GetData(i,4));
-    end;
-    dec(trimint,5);
-    for i := 0-trimint to 3-trimint do
-    begin
-         L2BLOCKR1[i+trimint,0] := StrToInt(VDB.GetData(i,1));
-         L2BLOCKR1[i+trimint,1] := StrToInt(VDB.GetData(i,2));
-         L2BLOCKR1[i+trimint,2] := StrToInt(VDB.GetData(i,3));
-         L2BLOCKR1[i+trimint,3] := StrToInt(VDB.GetData(i,4));
-    end;
-    dec(trimint,5);
-    for i := 0-trimint to 3-trimint do
-    begin
-         L2BLOCKR2[i+trimint,0] := StrToInt(VDB.GetData(i,1));
-         L2BLOCKR2[i+trimint,1] := StrToInt(VDB.GetData(i,2));
-         L2BLOCKR2[i+trimint,2] := StrToInt(VDB.GetData(i,3));
-         L2BLOCKR2[i+trimint,3] := StrToInt(VDB.GetData(i,4));
-    end;
-    dec(trimint,5);
-    for i := 0-trimint to 3-trimint do
-    begin
-         L2BLOCKR3[i+trimint,0] := StrToInt(VDB.GetData(i,1));
-         L2BLOCKR3[i+trimint,1] := StrToInt(VDB.GetData(i,2));
-         L2BLOCKR3[i+trimint,2] := StrToInt(VDB.GetData(i,3));
-         L2BLOCKR3[i+trimint,3] := StrToInt(VDB.GetData(i,4));
-    end;
-    dec(trimint,5);
-    for i := 0-trimint to 3-trimint do
-    begin
-         CANONBLOCKR0[i+trimint,0] := StrToInt(VDB.GetData(i,1));
-         CANONBLOCKR0[i+trimint,1] := StrToInt(VDB.GetData(i,2));
-         CANONBLOCKR0[i+trimint,2] := StrToInt(VDB.GetData(i,3));
-         CANONBLOCKR0[i+trimint,3] := StrToInt(VDB.GetData(i,4));
-    end;
-    dec(trimint,5);
-    for i := 0-trimint to 3-trimint do
-    begin
-         CANONBLOCKR1[i+trimint,0] := StrToInt(VDB.GetData(i,1));
-         CANONBLOCKR1[i+trimint,1] := StrToInt(VDB.GetData(i,2));
-         CANONBLOCKR1[i+trimint,2] := StrToInt(VDB.GetData(i,3));
-         CANONBLOCKR1[i+trimint,3] := StrToInt(VDB.GetData(i,4));
-    end;
-    dec(trimint,5);
-    for i := 0-trimint to 3-trimint do
-    begin
-         CANONBLOCKR2[i+trimint,0] := StrToInt(VDB.GetData(i,1));
-         CANONBLOCKR2[i+trimint,1] := StrToInt(VDB.GetData(i,2));
-         CANONBLOCKR2[i+trimint,2] := StrToInt(VDB.GetData(i,3));
-         CANONBLOCKR2[i+trimint,3] := StrToInt(VDB.GetData(i,4));
-    end;
-    dec(trimint,5);
-    for i := 0-trimint to 3-trimint do
-    begin
-         CANONBLOCKR3[i+trimint,0] := StrToInt(VDB.GetData(i,1));
-         CANONBLOCKR3[i+trimint,1] := StrToInt(VDB.GetData(i,2));
-         CANONBLOCKR3[i+trimint,2] := StrToInt(VDB.GetData(i,3));
-         CANONBLOCKR3[i+trimint,3] := StrToInt(VDB.GetData(i,4));
-    end;
-    dec(trimint,5);
-    for i := 0-trimint to 3-trimint do
-    begin
-         STH1BLOCKR0[i+trimint,0] := StrToInt(VDB.GetData(i,1));
-         STH1BLOCKR0[i+trimint,1] := StrToInt(VDB.GetData(i,2));
-         STH1BLOCKR0[i+trimint,2] := StrToInt(VDB.GetData(i,3));
-         STH1BLOCKR0[i+trimint,3] := StrToInt(VDB.GetData(i,4));
-    end;
-    dec(trimint,5);
-    for i := 0-trimint to 3-trimint do
-    begin
-         STH1BLOCKR1[i+trimint,0] := StrToInt(VDB.GetData(i,1));
-         STH1BLOCKR1[i+trimint,1] := StrToInt(VDB.GetData(i,2));
-         STH1BLOCKR1[i+trimint,2] := StrToInt(VDB.GetData(i,3));
-         STH1BLOCKR1[i+trimint,3] := StrToInt(VDB.GetData(i,4));
-    end;
-    dec(trimint,5);
-    for i := 0-trimint to 3-trimint do
-    begin
-         STH2BLOCKR0[i+trimint,0] := StrToInt(VDB.GetData(i,1));
-         STH2BLOCKR0[i+trimint,1] := StrToInt(VDB.GetData(i,2));
-         STH2BLOCKR0[i+trimint,2] := StrToInt(VDB.GetData(i,3));
-         STH2BLOCKR0[i+trimint,3] := StrToInt(VDB.GetData(i,4));
-    end;
-    dec(trimint,5);
-    for i := 0-trimint to 3-trimint do
-    begin
-         STH2BLOCKR1[i+trimint,0] := StrToInt(VDB.GetData(i,1));
-         STH2BLOCKR1[i+trimint,1] := StrToInt(VDB.GetData(i,2));
-         STH2BLOCKR1[i+trimint,2] := StrToInt(VDB.GetData(i,3));
-         STH2BLOCKR1[i+trimint,3] := StrToInt(VDB.GetData(i,4));
-    end;
-    dec(trimint,5);
-    // other config options
-    DELAYNUM := StrToInt(VDB.GetData(-trimint,1));
-    dec(trimint,2);
-    STARTYNUM := StrToInt(VDB.GetData(-trimint,1));
-    dec(trimint,2);
-    SQUAREWIDTH := StrToInt(VDB.GetData(-trimint,1));
-    dec(trimint,2);
-    SQUAREHEIGHT := StrToInt(VDB.GetData(-trimint,1));
-    dec(trimint,2);
-    FIELDWIDTH := StrToInt(VDB.GetData(-trimint,1));
-    dec(trimint,2);
-    FIELDHEIGHT := StrToInt(VDB.GetData(-trimint,1));
-
-    vdb.free;
 end;
 
 procedure TfrmTetris.mnuCSClick(Sender: TObject);
