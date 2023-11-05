@@ -19,8 +19,6 @@ type TPlayMatrix = array of array of byte;
        Ypos : integer;
        GameState : TGameState;
        Block : TBlock;
-       BlockWidth : integer;
-       BlockHeight : integer;
        BlockType : TBlockType;
        PlayMatrix : TPlayMatrix;
        BlockBitmap : TFastBMP;
@@ -116,6 +114,8 @@ type
     procedure  ChooseBlockBitmap(BlockType : TBlockType; var Bitmap : TFastBmp);
     function CheckPutY(BLK : TBlock; ix, iy : integer) : boolean;
     function GetNumRotations(BlockType : TBlockType): integer;
+    function initBlock(BlockType: TBlockType): TBlock;
+    function GetNextRotation(BlockType :TBlockType; Rotateindex: integer): TBlock;
     procedure NeutralizeBlock;
     procedure RotateBlock;
     procedure DropDown;
@@ -452,51 +452,7 @@ begin
           BlockType := NextBlock;
           NextBlock := Random(NUMBLOCKS)+2;
           NumRotations := GetNumRotations (blocktype);
-          case BlockType of
-               ftIBlock:
-               begin
-                    BlockWidth := 4;
-                    BlockHeight := 1;
-                    Block := IBLOCKR0;
-               end;
-               ftBoxBlock:
-               begin
-                    BlockWidth := 2;
-                    BlockHeight := 2;
-                    Block := BOXBLOCKR0;
-               end;
-               ftL1Block:
-               begin
-                    BlockWidth := 3;
-                    BlockHeight := 2;
-                    Block := L1BLOCKR0;
-               end;
-               ftL2Block:
-               begin
-                    BlockWidth := 3;
-                    BlockHeight := 2;
-                    Block := L2BLOCKR0;
-               end;
-               ftCanonBlock:
-               begin
-                    BlockWidth := 3;
-                    BlockHeight := 2;
-                    Block := CANONBLOCKR0;
-               end;
-               ftSTH1Block:
-               begin
-                    BlockWidth := 3;
-                    BlockHeight := 2;
-                    Block := STH1BLOCKR0;
-               end;
-               ftSTH2Block:
-               begin
-                    BlockWidth := 3;
-                    BlockHeight := 2;
-                    Block := STH2BLOCKR0;
-               end;
-
-          end;
+          Block := initBlock(BlockType);
 
           ChooseBlockBitmap(BlockType, BlockBitmap);
           GameState := gsPlaying;
@@ -513,6 +469,8 @@ begin
      //Caption := IntToStr(XPOS); // DEBUG
 end;
 end;
+
+
 
 procedure TfrmTetris.HMatrixShift(iy: integer);
 var TMP : TPlayMatrix;
@@ -713,6 +671,19 @@ begin
      end;
 end;
 
+function TfrmTetris.initBlock(BlockType: TBlockType): TBlock;
+begin
+  case BlockType of
+      ftIBlock:     Result := IBLOCKR0;
+      ftBoxBlock:   Result := BOXBLOCKR0;
+      ftL1Block:    Result := L1BLOCKR0;
+      ftL2Block:    Result := L2BLOCKR0;
+      ftCanonBlock: Result := CANONBLOCKR0;
+      ftSTH1Block:  Result := STH1BLOCKR0;
+      ftSTH2Block:  Result := STH2BLOCKR0;
+  end;
+end;
+
 
 
 procedure TfrmTetris.FormCreate(Sender: TObject);
@@ -828,6 +799,63 @@ begin
 end;
 end;
 
+function TfrmTetris.GetNextRotation(BlockType :TBlockType; Rotateindex: integer): TBlock;
+begin
+case BlockType of
+          ftIBLOCK:
+          begin
+               case Rotateindex of
+               0: Result := IBLOCKR0;
+               1: Result := IBLOCKR1;
+               end;
+          end;
+          ftCANONBLOCK:
+          begin
+               case Rotateindex of
+               0: Result := CANONBLOCKR0;
+               1: Result := CANONBLOCKR1;
+               2: Result := CANONBLOCKR2;
+               3: Result := CANONBLOCKR3;
+
+               end;
+          end;
+          ftL2BLOCK:
+          begin
+               case Rotateindex of
+               0: Result := L2BLOCKR0;
+               1: Result := L2BLOCKR1;
+               2: Result := L2BLOCKR2;
+               3: Result := L2BLOCKR3;
+               end;
+          end;
+          ftL1BLOCK:
+          begin
+               case Rotateindex of
+               0: Result := L1BLOCKR0;
+               1: Result := L1BLOCKR1;
+               2: Result := L1BLOCKR2;
+               3: Result := L1BLOCKR3;
+               end;
+          end;
+          ftSTH1BLOCK :
+          begin
+               case Rotateindex of
+               0: Result := STH1BLOCKR0;
+               1: Result := STH1BLOCKR1;
+
+               end;
+          end;
+
+          ftSTH2BLOCK :
+          begin
+               case Rotateindex of
+               0: Result := STH2BLOCKR0;
+               1: Result := STH2BLOCKR1;
+
+               end;
+          end;
+     end;
+end;
 
 procedure TfrmTetris.RotateBlock;
 var TMP2 : integer;
@@ -841,60 +869,8 @@ begin
        inc(rotateindex)
     else RotateIndex := 0;
     
-     case BlockType of
-          ftIBLOCK:
-          begin
-               case Rotateindex of
-               0: TMP := IBLOCKR0;
-               1: TMP := IBLOCKR1;
-               end;
-          end;
-          ftCANONBLOCK:
-          begin
-               case Rotateindex of
-               0: TMP := CANONBLOCKR0;
-               1: TMP := CANONBLOCKR1;
-               2: TMP := CANONBLOCKR2;
-               3: TMP := CANONBLOCKR3;
-
-               end;
-          end;
-          ftL2BLOCK:
-          begin
-               case Rotateindex of
-               0: TMP := L2BLOCKR0;
-               1: TMP := L2BLOCKR1;
-               2: TMP := L2BLOCKR2;
-               3: TMP := L2BLOCKR3;
-               end;
-          end;
-          ftL1BLOCK:
-          begin
-               case Rotateindex of
-               0: TMP := L1BLOCKR0;
-               1: TMP := L1BLOCKR1;
-               2: TMP := L1BLOCKR2;
-               3: TMP := L1BLOCKR3;
-               end;
-          end;
-          ftSTH1BLOCK :
-          begin
-               case Rotateindex of
-               0: TMP := STH1BLOCKR0;
-               1: TMP := STH1BLOCKR1;
-
-               end;
-          end;
-
-          ftSTH2BLOCK :
-          begin
-               case Rotateindex of
-               0: TMP := STH2BLOCKR0;
-               1: TMP := STH2BLOCKR1;
-
-               end;
-          end;
-     end;
+   TMP := GetNextRotation(BlockType, RotateIndex);
+   
    if not CheckPutY(TMP,XPOS,YPOS) then
    begin
         if (BlockType = ftL2Block) and (XPOS = FIELDWIDTH -2) and (RotateIndex = 2) then
@@ -919,67 +895,7 @@ begin
         end;
    end;
 
-
-   TMP2 := BlockHeight;
-   BlockHeight := BlockWidth;
-   BlockWidth := TMP2;
-
-
-     case BlockType of
-          ftIBLOCK:
-          begin
-               case Rotateindex of
-               0: BLock := IBLOCKR0;
-               1: BLock := IBLOCKR1;
-               end;
-          end;
-          ftCANONBLOCK:
-          begin
-               case Rotateindex of
-               0: BLock := CANONBLOCKR0;
-               1: BLock := CANONBLOCKR1;
-               2: BLock := CANONBLOCKR2;
-               3: BLock := CANONBLOCKR3;
-
-               end;
-          end;
-          ftL2BLOCK:
-          begin
-               case Rotateindex of
-               0: BLock := L2BLOCKR0;
-               1: BLock := L2BLOCKR1;
-               2: BLock := L2BLOCKR2;
-               3: BLock := L2BLOCKR3;
-               end;
-          end;
-          ftL1BLOCK:
-          begin
-               case Rotateindex of
-               0: BLock := L1BLOCKR0;
-               1: BLock := L1BLOCKR1;
-               2: BLock := L1BLOCKR2;
-               3: BLock := L1BLOCKR3;
-               end;
-          end;
-          ftSTH1BLOCK :
-          begin
-               case Rotateindex of
-               0: BLock := STH1BLOCKR0;
-               1: BLock := STH1BLOCKR1;
-
-               end;
-          end;
-
-          ftSTH2BLOCK :
-          begin
-               case Rotateindex of
-               0: BLock := STH2BLOCKR0;
-               1: BLock := STH2BLOCKR1;
-
-               end;
-          end;
-     end;
-
+   Block := GetNextRotation(BlockType, RotateIndex);
 end;
 end;
 
@@ -1072,7 +988,6 @@ begin
   begin
     for x:=0 to SQUAREWIDTH-1 do
     begin
-
       Dst.Pixels[iy+y,ix+x]:=Bmp.Pixels[y,x];
     end;
   end;
@@ -1092,47 +1007,16 @@ var x,y : integer;
     tmpbmp : TFastBMP;
 begin
 FillRect(NB.Bmp,0,0,SQUAREWIDTH *4, SQUAREHEIGHT *4, FRGB(0,0,0));
-          case NextBlock of
-               ftIBlock:
-               begin
-                    Blocky := IBLOCKR0;
-               end;
-               ftBoxBlock:
-               begin
-                    Blocky := BOXBLOCKR0;
-               end;
-               ftL1Block:
-               begin
-                    Blocky := L1BLOCKR0;
-               end;
-               ftL2Block:
-               begin
-                    Blocky := L2BLOCKR0;
-               end;
-               ftCanonBlock:
-               begin
-                    Blocky := CANONBLOCKR0;
-               end;
-               ftSTH1Block:
-               begin
-                    Blocky := STH1BLOCKR0;
-               end;
-               ftSTH2Block:
-               begin
-                    Blocky := STH2BLOCKR0;
-               end;
-     end;
-     for y := 0 to 3 do
-      for x := 0 to 3 do
-      begin
-           if Blocky[y,x] = ftMoving then
-           begin
-               ChooseBLockBitmap(nextblock,tmpbmp);
-               DrawBlock(NB.Bmp,x,y,tmpbmp);
-           end;
-      end;
-      NB.Draw;
+Blocky := initBlock(NextBlock);
+
+ChooseBLockBitmap(nextblock,tmpbmp);
+for y := 0 to 3 do
+  for x := 0 to 3 do
+    if Blocky[y,x] = ftMoving then
+      DrawBlock(NB.Bmp,x,y,tmpbmp);
+NB.Draw;
 end;
+
 procedure TfrmTetris.mnuNBClick(Sender: TObject);
 begin
 mnuNB.Checked := not mnuNB.Checked;
