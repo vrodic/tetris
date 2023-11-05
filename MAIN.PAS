@@ -100,6 +100,7 @@ type
     procedure N81Click(Sender: TObject);
     procedure N91Click(Sender: TObject);
     procedure FormResize(Sender: TObject);
+    procedure CenterPlayArea();
   private
     { Private declarations }
   public
@@ -301,7 +302,6 @@ var TetrisGame : TTetrisGame;
     FIELDWIDTH : integer= 10;
     FIELDHEIGHT : integer= 20;
     NextBlock : TBlockType;
-    BLockPreview : boolean = false;
     Delayer : byte; // used to delay after block has soft landed
                     // enables player to move the rock some time after
 procedure DrawToFBMP(Bmp, dst:TFastRGB;ix, iy : integer);
@@ -363,12 +363,10 @@ Score := 0;
 
 lblLevel.Caption := IntToStr(GameClock.Interval);
 NextBlock := Random(NUMBLOCKS)+2;
-pnNB.Visible := BlockPreview;
+pnNB.Visible := mnuNB.Checked;
 end;
 
-// centering code
-panelPlayArea.Top := ((ClientRect.Bottom-ClientRect.Top) div 2) - (PlayArea.Height div 2);
-panelPlayArea.left := ((ClientRect.Right-ClientRect.Left) div 2) - (PlayArea.Width div 2);
+centerPlayArea;
 
 if STARTINGROWS <> 0 then
 begin
@@ -508,7 +506,7 @@ begin
                Exit;
           end;
           PutBlock(XPOS,YPOS);
-          if BlockPreview then DrawNextBlock;
+          if mnuNB.Checked then DrawNextBlock;
      end;
      end;
      PlayArea.Draw;
@@ -725,7 +723,7 @@ BackIMG.Width := ClientRect.Right - ClientRect.Left;
 BackIMG.Height := ClientRect.Bottom - ClientRect.Top;
 iniFile := TIniFile.Create(extractFilePath(Application.EXEName) + INIFILENAME);
 currskin := inifile.ReadString('Data','DataDirName','classic');
-blockPreview := inifile.ReadBool('Options','PreviewBlock',false);
+mnuNB.Checked := inifile.ReadBool('Options','PreviewBlock',false);
 STARTINGROWS := inifile.ReadInteger('Options','StartingRows',0);
 GameClock.Interval := inifile.ReadInteger('Options','TimeDelay',140);
 inifile.Free;
@@ -740,7 +738,6 @@ case STARTINGROWS of 0: N01.Checked := True;
                      8: N81.Checked := True;
                      9: N91.Checked := True;
 end;
-mnuNB.Checked := BlockPreview;
 
 TetrisGame.CurrLevel := 1;
 InitBlockBitmaps;
@@ -1138,9 +1135,8 @@ FillRect(NB.Bmp,0,0,SQUAREWIDTH *4, SQUAREHEIGHT *4, FRGB(0,0,0));
 end;
 procedure TfrmTetris.mnuNBClick(Sender: TObject);
 begin
-BlockPreview := not BlockPReview;
-pnNB.Visible := BlockPreview;
-mnuNB.Checked := BlockPreview;
+mnuNB.Checked := not mnuNB.Checked;
+pnNB.Visible := mnuNB.Checked;
 end;
 
 procedure TfrmTetris.InitBlockBitmaps;
@@ -1356,7 +1352,7 @@ var inifile : TIniFile;
 begin
 inifile := Tinifile.Create(extractFilePath(Application.EXEName)+INIFILENAME);
 inifile.WriteString('Data','DataDirName',currskin);
-inifile.WriteBool('Options','PreviewBlock',blockPreview);
+inifile.WriteBool('Options','PreviewBlock',mnuNB.Checked);
 inifile.WriteInteger('Options','TimeDelay',GameClock.Interval);
 inifile.WriteInteger('Options','StartingRows',STARTINGROWS);
 inifile.Free;
@@ -1467,6 +1463,11 @@ TMenuItem(Sender).Checked := True;
 end;
 
 procedure TfrmTetris.FormResize(Sender: TObject);
+begin
+centerPlayArea;
+end;
+
+procedure TfrmTetris.CenterPlayArea();
 begin
 panelPlayArea.Top := ((ClientRect.Bottom-ClientRect.Top) div 2) - (PlayArea.Height div 2);
 panelPlayArea.left := ((ClientRect.Right-ClientRect.Left) div 2) - (PlayArea.Width div 2);
