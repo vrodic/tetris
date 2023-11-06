@@ -102,6 +102,7 @@ type
     procedure CenterPlayArea();
   private
     { Private declarations }
+    procedure RandomOutro;
   public
     { Public declarations }
     procedure NewGame;
@@ -309,7 +310,6 @@ var
     currskin : string;
 
 
-
     //background bitmap
     backbmp : TFastBMP;
     DELAYNUM : word = 1;
@@ -317,9 +317,15 @@ var
     STARTINGROWS: integer;
 
 procedure Delay(time : longword);
+function GetNextBlock(): TBlockType;
 implementation
 
 {$R *.DFM}
+
+function GetNextBlock(): TBlockType;
+begin
+Result := Random(NUMBLOCKS)+2;
+end;
 
 procedure TfrmTetris.NewGame;
 var x, y : integer;
@@ -352,7 +358,7 @@ GameClock.Enabled := True; // start!;
 Score := 0;
 
 lblLevel.Caption := IntToStr(GameClock.Interval);
-NextBlock := Random(NUMBLOCKS)+2;
+NextBlock := GetNextBlock;
 pnNB.Visible := mnuNB.Checked;
 end;
 
@@ -419,10 +425,6 @@ begin
           CANTOUCH := False;
           RemoveBlocks;
           DrawMatrix;
-          if mnuSFX.checked then
-          begin
-               GaussianBlur(PlayArea.Bmp,1);
-          end;
           Delayer := 0;
      end
      else inc(Delayer);
@@ -440,7 +442,7 @@ begin
           YPOS := STARTYNUM;
           RotateIndex := 0;
           BlockType := NextBlock;
-          NextBlock := Random(NUMBLOCKS)+2;
+          NextBlock := GetNextBlock;
           NumRotations := GetNumRotations (blocktype);
           Block := initBlock(BlockType);
 
@@ -540,21 +542,22 @@ var LINEFULL : boolean;
 begin
           for y := FIELDHEIGHT -1 downto 0 do
           begin
-          LINEFULL := True;
-               for x := 0 to FIELDWIDTH -1 do
-               begin
-                    if TetrisGame.PlayMatrix[y,x] = ftBLANK then
-                    begin
-                         LINEFULL := false;
-                         break;
-                    end;
-               end;
-          if LINEFULL then
-          begin
-               Inc(Score,100);
-               RemoveLine(y);
-               RemoveBlocks;
-          end;
+            LINEFULL := True;
+            for x := 0 to FIELDWIDTH -1 do
+            begin
+              if TetrisGame.PlayMatrix[y,x] = ftBLANK then
+              begin
+                LINEFULL := false;
+                break;
+              end;
+            end;
+            
+            if LINEFULL then
+            begin
+              Inc(Score,100);
+              RemoveLine(y);
+              RemoveBlocks;
+            end;
           end;
 end;
 
@@ -685,6 +688,7 @@ BackIMG.Height := ClientRect.Bottom - ClientRect.Top;
 iniFile := TIniFile.Create(extractFilePath(Application.EXEName) + INIFILENAME);
 currskin := inifile.ReadString('Data','DataDirName','classic');
 mnuNB.Checked := inifile.ReadBool('Options','PreviewBlock',false);
+mnuSFX.Checked := inifile.ReadBool('Options','SFX',true);
 STARTINGROWS := inifile.ReadInteger('Options','StartingRows',0);
 GameClock.Interval := inifile.ReadInteger('Options','TimeDelay',140);
 inifile.Free;
@@ -901,7 +905,7 @@ SCRTMP := YPOS*5;
 CANDOIT := true;
 while CANDOIT do
 begin
-     if CANDOIT then CANDOIT := CheckPUTY(Block, XPOS,YPOS+1);
+     CANDOIT := CheckPUTY(Block, XPOS,YPOS+1);
      if CANDOIT then
      begin
            RemoveBlock(XPOS,YPOS);
@@ -920,17 +924,11 @@ begin
      begin
           EndGame;
      end;
-
-     if mnuSfx.checked then PlayArea.Draw; // OPTIONAL: does a nice little effect.. I'm keeping it
 end;
 Inc(score,SCRTMP+YPOS);
 end;
 
-if mnuSFX.checked then
-begin
-     GaussianBlur(PlayArea.Bmp,1); // EFFECT
-     //Emboss(PlayArea.Bmp);
-end;
+
 PlayArea.Draw;
 lblSCR.Caption := IntToStr(Score);
 end;
@@ -1044,6 +1042,7 @@ begin
 inifile := Tinifile.Create(extractFilePath(Application.EXEName)+INIFILENAME);
 inifile.WriteString('Data','DataDirName',currskin);
 inifile.WriteBool('Options','PreviewBlock',mnuNB.Checked);
+inifile.WriteBool('Options','SFX',mnuSFX.Checked);
 inifile.WriteInteger('Options','TimeDelay',GameClock.Interval);
 inifile.WriteInteger('Options','StartingRows',STARTINGROWS);
 inifile.Free;
@@ -1060,29 +1059,35 @@ begin
 end;
 
 procedure TfrmTetris.EndGame;
-var i : integer;
 begin
           GameClock.Enabled := False;
           if mnuSFX.checked then
-             for i:= 0 to 60 do
-             begin
-               //delay(50);
-               //Invert(PlayArea.Bmp);
-               GaussianBlur(PlayArea.Bmp,2);
-               //HShift(PlayArea.Bmp,1);
-               //AddMonoNoise(PlayArea.Bmp,50);
-               //Mosaic(PlayArea.Bmp,i,i);
-               //Twist(PlayArea.Bmp,PlayArea.Bmp,300+i);
-               //Lightness(PlayArea.Bmp,-5);
-               //FishEye(PlayArea.Bmp,PlayArea.Bmp,i+1);
-               PlayArea.Draw;
-             end;
-          {
-          GrayScale(PlayArea.BMp);
-          PlayArea.Draw;}
-          //MessageBox(0,'Game Over','Luzer',0);
+            RandomOutro;
+
           ShowScores(Score);
           NewGame;
+end;
+
+procedure TfrmTetris.RandomOutro;
+var i: integer;
+var outro: integer;
+begin
+outro := Random(6);
+//outro := 4;
+//Caption := IntToStr(outro);
+  for i:= 0 to 60 do
+             begin
+               delay(10);
+               case outro of
+                0: GaussianBlur(PlayArea.Bmp,2);
+                1: HShift(PlayArea.Bmp,1);
+                2: AddMonoNoise(PlayArea.Bmp,150);
+                3: Mosaic(PlayArea.Bmp,i,i);
+                4: Twist(PlayArea.Bmp,PlayArea.Bmp,300+i); // TODO work on orig copy
+                5: Lightness(PlayArea.Bmp,-25);
+               end;
+               PlayArea.Draw;
+             end;
 end;
 
 procedure TfrmTetris.OnAppDeactivate(Sender : TObject);
