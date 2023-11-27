@@ -89,15 +89,6 @@ type
     procedure mnuCSClick(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure N01Click(Sender: TObject);
-    procedure N11Click(Sender: TObject);
-    procedure N21Click(Sender: TObject);
-    procedure N31Click(Sender: TObject);
-    procedure N41Click(Sender: TObject);
-    procedure N51Click(Sender: TObject);
-    procedure N61Click(Sender: TObject);
-    procedure N71Click(Sender: TObject);
-    procedure N81Click(Sender: TObject);
-    procedure N91Click(Sender: TObject);
     procedure FormResize(Sender: TObject);
     procedure CenterPlayArea();
   private
@@ -681,6 +672,7 @@ end;
 
 procedure TfrmTetris.FormCreate(Sender: TObject);
 var IniFile : TIniFile;
+    i : Integer;
 begin
 Application.OnDeactivate :=OnAppDeactivate;
 BackIMG.Width := ClientRect.Right - ClientRect.Left;
@@ -692,16 +684,14 @@ mnuSFX.Checked := inifile.ReadBool('Options','SFX',true);
 STARTINGROWS := inifile.ReadInteger('Options','StartingRows',0);
 GameClock.Interval := inifile.ReadInteger('Options','TimeDelay',140);
 inifile.Free;
-case STARTINGROWS of 0: N01.Checked := True;
-                     1: N11.Checked := True;
-                     2: N21.Checked := True;
-                     3: N31.Checked := True;
-                     4: N41.Checked := True;
-                     5: N51.Checked := True;
-                     6: N61.Checked := True;
-                     7: N71.Checked := True;
-                     8: N81.Checked := True;
-                     9: N91.Checked := True;
+
+for i := 0 to mnuStartingRows.Count - 1 do
+begin
+  if mnuStartingRows[i].Tag = STARTINGROWS then
+  begin
+    mnuStartingRows[i].Checked := true;
+    break;
+  end;
 end;
 
 TetrisGame.CurrLevel := 1;
@@ -1060,12 +1050,12 @@ end;
 
 procedure TfrmTetris.EndGame;
 begin
-          GameClock.Enabled := False;
-          if mnuSFX.checked then
-            RandomOutro;
+  GameClock.Enabled := False;
+  if mnuSFX.checked then
+    RandomOutro;
 
-          ShowScores(Score);
-          NewGame;
+  ShowScores(Score);
+  NewGame;
 end;
 
 procedure TfrmTetris.RandomOutro;
@@ -1097,66 +1087,10 @@ end;
 
 procedure TfrmTetris.N01Click(Sender: TObject);
 begin
-STARTINGROWS := 0;
+STARTINGROWS := TMenuItem(Sender).Tag;
 TMenuItem(Sender).Checked := True;
 end;
 
-procedure TfrmTetris.N11Click(Sender: TObject);
-begin
-STARTINGROWS := 1;
-TMenuItem(Sender).Checked := True;
-end;
-
-procedure TfrmTetris.N21Click(Sender: TObject);
-begin
-STARTINGROWS := 2;
-TMenuItem(Sender).Checked := True;
-end;
-
-procedure TfrmTetris.N31Click(Sender: TObject);
-begin
-STARTINGROWS := 3;
-TMenuItem(Sender).Checked := True;
-end;
-
-procedure TfrmTetris.N41Click(Sender: TObject);
-begin
-STARTINGROWS := 4;
-TMenuItem(Sender).Checked := True;
-end;
-
-procedure TfrmTetris.N51Click(Sender: TObject);
-begin
-STARTINGROWS := 5;
-TMenuItem(Sender).Checked := True;
-end;
-
-procedure TfrmTetris.N61Click(Sender: TObject);
-begin
-STARTINGROWS := 6;
-TMenuItem(Sender).Checked := True;
-end;
-
-procedure TfrmTetris.N71Click(Sender: TObject);
-begin
-STARTINGROWS := 7;
-TMenuItem(Sender).Checked := True;
-
-end;
-
-procedure TfrmTetris.N81Click(Sender: TObject);
-begin
-STARTINGROWS := 8;
-TMenuItem(Sender).Checked := True;
-
-end;
-
-procedure TfrmTetris.N91Click(Sender: TObject);
-begin
-STARTINGROWS := 9;
-TMenuItem(Sender).Checked := True;
-
-end;
 
 procedure TfrmTetris.FormResize(Sender: TObject);
 begin
